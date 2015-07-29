@@ -1,4 +1,4 @@
-(in-package :clts)
+(in-package :clts-user)
 
 (defclass vector-auto-regressive-model ()
   (dimention

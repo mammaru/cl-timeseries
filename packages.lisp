@@ -1,14 +1,15 @@
 (in-package :cl-user)
+(ql:quickload :cls)
 
-(defpackage :common-lisp-time-series-user
+(defpackage :common-lisp-time-series
   (:documentation "demo of how to put serious work should be placed in
     a similar package elsewhere for reproducibility.  This hints as to
     what needs to be done for a user- or analysis-package.")
-  (:nicknames :clts-user)
+  (:nicknames :clts)
   (:use :common-lisp ; always needed for user playgrounds!
         :lisp-matrix ; we only need the packages that we need...
         :common-lisp-statistics
-        :cl-variates
+        ;:cl-variates
         :lisp-stat-data-examples) ;; this ensures access to a data package
   (:shadowing-import-from :lisp-stat
       ;; This is needed temporarily until we resolve the dependency and call structure. 
@@ -23,6 +24,7 @@
       ftruncate fround signum cis
 
       <= float imagpart)
+  (:shadowing-import-from :cl-variates :except rand)
 
   (:export summarize-data
 		   summarize-results
@@ -31,12 +33,11 @@
 		   :vector-auto-regressive-model
 		   :state-space-model))
 
-(in-package :clts-user)
+(in-package :clts)
 
-(defpackage :clts
-  (:use :cls)
-  (:export :var
-		   :ssm))
+(defpackage :common-lisp-time-series-user
+  (:nicknames :clts-user)
+  (:use :clts))
 
 (defpackage :kalman
   (:use :clts))
