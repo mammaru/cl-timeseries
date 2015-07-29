@@ -4,15 +4,18 @@
   (dimention
    :accessor dimention
    :initarg :dimention
-   :initform 1)
-  (A ;;transition matrix
+   :initform 1
+   :documentation "dimention of vaiables")
+  (A
    :accessor A
    :initarg :A
-   :initform 1)
+   :initform 1
+   :documentation "transition matrix or coefficient")
   (E ;;error matrix
    :accessor E
    :initarg :E
-   :initform 1)) 
+   :initform 1
+   :documentation "variance matrix of error")) 
 
 (defclass state-space-model ()
   (observation-dimention
@@ -24,5 +27,4 @@
   (initial-mean-of-system
    :initarg :x0mean)
   (initial-variance-of-system
-   :initform :x0var)
-  )
+   :initform :x0var))
