@@ -2,12 +2,15 @@
 
 (defclass vector-auto-regressive-model ()
   (dimention
+   :accessor dimention
    :initarg :dimention
    :initform 1)
   (A ;;transition matrix
+   :accessor A
    :initarg :A
    :initform 1)
   (E ;;error matrix
+   :accessor E
    :initarg :E
    :initform 1)) 
 
