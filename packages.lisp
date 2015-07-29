@@ -36,7 +36,8 @@
 (defpackage :common-lisp-time-series-user
   (:documentation "wrapper package of common-lisp-time-series for user")
   (:nicknames :clts-user)
-  (:use :clts))
+  (:use :common-lisp
+		:clts))
 
 (defpackage :kalman
   (:use :clts))

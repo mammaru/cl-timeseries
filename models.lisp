@@ -1,24 +1,24 @@
 (in-package :clts-user)
 
 (defclass vector-auto-regressive-model ()
-  (dimention
-   :accessor dimention
+  ((dimention
    :initarg :dimention
    :initform 1
+   :accessor dimention
    :documentation "dimention of vaiables")
-  (A
+  (transition-matrix
+   :initarg :transition-matrix
+   :initform 1
    :accessor A
-   :initarg :A
-   :initform 1
    :documentation "transition matrix or coefficient")
-  (E ;;error matrix
-   :accessor E
-   :initarg :E
+  (E
+   :initarg :error-matrix
    :initform 1
-   :documentation "variance matrix of error")) 
+   :accessor E
+   :documentation "variance matrix of error")))
 
 (defclass state-space-model ()
-  (observation-dimention
+  ((observation-dimention
    :initarg :obs-dim
    :initform (error "Must supply dimention of observation as :obs-dim"))
   (system-dimention
@@ -27,4 +27,4 @@
   (initial-mean-of-system
    :initarg :x0mean)
   (initial-variance-of-system
-   :initform :x0var))
+   :initarg :x0var)))
