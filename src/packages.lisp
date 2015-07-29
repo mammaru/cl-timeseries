@@ -1,11 +1,11 @@
 (in-package :cl-user)
 (ql:quickload :cls)
 
-(defpackage :common-lisp-time-series
+(defpackage :common-lisp-time-series-user
   (:documentation "demo of how to put serious work should be placed in
     a similar package elsewhere for reproducibility.  This hints as to
     what needs to be done for a user- or analysis-package.")
-  (:nicknames :clts)
+  (:nicknames :clts-user)
   (:use :common-lisp ; always needed for user playgrounds!
         :lisp-matrix ; we only need the packages that we need...
         :common-lisp-statistics
@@ -33,14 +33,9 @@
 		   :vector-auto-regressive-model
 		   :state-space-model))
 
-(defpackage :common-lisp-time-series-user
-  (:documentation "wrapper package of common-lisp-time-series for user")
-  (:nicknames :clts-user)
-  (:use :common-lisp
-		:clts))
 
 (defpackage :kalman
-  (:use :clts))
+  (:use :clts-user))
 
 (defpackage :particle
-  (:use :clts))
+  (:use :clts-user))
