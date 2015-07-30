@@ -8,12 +8,12 @@
 	:documentation "dimention of vaiables")
    (transition-matrix
 	:initarg :A
-	:initform 1
+	:initform (rand dimention dimention)
 	:accessor A
 	:documentation "transition matrix or coefficient")
    (error-matrix
 	:initarg :E
-	:initform 1
+	:initform (eye dimention dimention)
 	:accessor E
 	:documentation "variance matrix of error")
    (values
@@ -36,8 +36,8 @@
    (observation-values
 	:initform 0)))
 
-(defun cholesky-decomposition (matrix)
-  (let ((tmp matrix) (dim-row (nrows matrix)) (dim-col (ncols matrix)))
+(defun cholesky-decomposition (m)
+  (let ((tmp m) (dim-row (nrows m)) (dim-col (ncols m)))
 	(case dim-row
 	  (dim-col (let ((dim dim-col))
 				 (loop
@@ -53,9 +53,9 @@
   (with-slots (dim dimention) model
 	(with-slots (A transition-matrix) model
 	  (with-slots (E error-matrix) model
-		(with-slots (values values) model
+		(with-slots (v values) model
 			(let ((past-value (last values)))
-			  (setf values (cons (last values) (M+ (M* A past-value) (multivariate-normal E))))))))))
+			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E))))))))))
 
 (defmethod transition ((model state-space-model))
   (with-slots (dim dimention) model
