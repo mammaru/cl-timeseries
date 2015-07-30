@@ -36,15 +36,25 @@
    (observation-values
 	:initform 0)))
 
-(defun multivariate-normal (variance-matrix)
+(defun cholesky-decomposition (matrix)
+  (let ((tmp matrix) (dim-row (nrows matrix)) (dim-col (ncols matrix)))
+	(case dim-row
+	  (dim-col (let ((dim dim-col))
+				 (loop
+					for i from 0 to dim
+					for j from i to dim
+					  do ())))
+	  (t (error "Augument must be square matrix")))))
+
+(defun multivariate-normal (sigma &opptional mu)
   )
 
 (defmethod transition ((model vector-auto-regressive-model))
   (with-slots (dim dimention) model
 	(with-slots (A transition-matrix) model
 	  (with-slots (E error-matrix) model
-		(with-slots (values values)
-			(let ((last-value (last values)))
+		(with-slots (values values) model
+			(let ((past-value (last values)))
 			  (setf values (cons (last values) (M+ (M* A past-value) (multivariate-normal E))))))))))
 
 (defmethod transition ((model state-space-model))
