@@ -1,40 +1,46 @@
 (in-package :clts-user)
 
 (defclass vector-auto-regressive-model ()
-  ((dimention
-	:initarg :dimention
+  ((dimension
+	:initarg :dimension
 	:initform 1
-	:accessor dimention
-	:documentation "dimention of vaiables")
+	:accessor dimension
+	:documentation "dimension of vaiables")
    (transition-matrix
 	:initarg :A
-	:initform (rand dimention dimention)
+	:initform (rand dimension dimension)
 	:accessor A
 	:documentation "transition matrix or coefficient")
    (error-matrix
 	:initarg :E
-	:initform (eye dimention dimention)
+	:initform (eye dimension dimension)
 	:accessor E
 	:documentation "variance matrix of error")
    (values
-	:initform (list (rand dimention 1)))))
+	:initform (list (rand dimension 1)))))
 
 (defclass state-space-model ()
-  ((observation-dimention
+  ((observation-dimension
 	:initarg :obs-dim
-	:initform (error "Must supply dimention of observation as :obs-dim"))
-   (system-dimention
+	:initform (error "Must supply dimension of observation as :obs-dim"))
+   (system-dimension
 	:initarg :sys-dim
-	:initform (error "Must supply dimention of system as :sys-dim"))
+	:initform (error "Must supply dimension of system as :sys-dim"))
    (initial-mean-of-system
 	:initarg :x0mean
-	:initform (rand dimention 0))
+	:initform (rand dimension 0))
    (initial-variance-of-system
 	:initarg :x0var)
    (system-values
 	:initform 0)
    (observation-values
 	:initform 0)))
+
+(defun square-matrix-p (m)
+  (check-type m matrix-like)
+  (if (reduce #'= (matrix-dimensions m)) (ncols m) nil))
+  ;(let ((dim-row (nrows m)) (dim-col (ncols m)))
+	;(if (= (nrows m) (ncols m)) dim-row nil)))
 
 (defun cholesky-decomposition (m)
   (let ((tmp m) (dim-row (nrows m)) (dim-col (ncols m)))
@@ -43,14 +49,14 @@
 				 (loop
 					for i from 0 to dim
 					for j from i to dim
-					  do ())))
-	  (t (error "Augument must be square matrix")))))
+					  summing (Mref m i j) into s))
+	  (t (error "Augument must be square matrix"))))))
 
 (defun multivariate-normal (sigma &opptional mu)
   )
 
 (defmethod transition ((model vector-auto-regressive-model))
-  (with-slots (dim dimention) model
+  (with-slots (dim dimension) model
 	(with-slots (A transition-matrix) model
 	  (with-slots (E error-matrix) model
 		(with-slots (v values) model
@@ -58,11 +64,11 @@
 			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E))))))))))
 
 (defmethod transition ((model state-space-model))
-  (with-slots (dim dimention) model
+  (with-slots (dim dimension) model
 	))
 
 (defmethod sparse-vector-auto-regression ((model vector-auto-regressive-model))
-  (with-slots (dim dimention) model
+  (with-slots (dim dimension) model
 	))
 
 
@@ -70,3 +76,6 @@
 (defparameter *tmp* (zeros 10 10))
 (M* tmp (ones 10 1))
 *tmp*
+(transpose-matrix *tmp*)
+(check-type *tmp* matrix-like)
+;(assert (= (nrows *tmp*) (ncols *tmp*)))
