@@ -37,22 +37,22 @@
 	:initform 0)))
 
 (defun square-matrix-p (m)
+  "Checking whether matrix is square or not. If square, returns dimension of matrix."
   (check-type m matrix-like)
   (if (reduce #'= (matrix-dimensions m)) (ncols m) nil))
   ;(let ((dim-row (nrows m)) (dim-col (ncols m)))
 	;(if (= (nrows m) (ncols m)) dim-row nil)))
 
 (defun cholesky-decomposition (m)
-  (let ((tmp m) (dim-row (nrows m)) (dim-col (ncols m)))
-	(case dim-row
-	  (dim-col (let ((dim dim-col))
-				 (loop
-					for i from 0 to dim
-					for j from i to dim
-					  summing (Mref m i j) into s))
-	  (t (error "Augument must be square matrix"))))))
+  (let ((dim (square-matrix-p m)))
+	(if dim
+		(loop
+		   for i from 0 to dim
+		   for j from i to dim
+		   summing (Mref m i j) into s)
+		(error "Augument must be square matrix"))))
 
-(defun multivariate-normal (sigma &opptional mu)
+(defun multivariate-normal (sigma &optional mu)
   )
 
 (defmethod transition ((model vector-auto-regressive-model))
@@ -72,7 +72,11 @@
 	))
 
 
-;; test
+
+
+
+
+;; junk
 (defparameter *tmp* (zeros 10 10))
 (M* tmp (ones 10 1))
 *tmp*
