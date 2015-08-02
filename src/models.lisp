@@ -44,6 +44,7 @@
 	;(if (= (nrows m) (ncols m)) dim-row nil)))
 
 (defun cholesky-decomposition (m)
+  "Returns lower triangular matrix that squared to be original matrix."
   (let ((dim (square-matrix-p m)))
 	(if dim
 		(loop
@@ -53,7 +54,8 @@
 		(error "Augument must be square matrix"))))
 
 (defun multivariate-normal (sigma &optional mu)
-  )
+  (let ((Q cholesky-decomposition sigma)) ((z (rand (square-matrix-p sigma) 1)))
+	(if mu (M+ mu (M* Q z)) (M* Q z))))
 
 (defmethod transition ((model vector-auto-regressive-model))
   (with-slots (dim dimension) model
