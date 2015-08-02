@@ -47,12 +47,19 @@
   "Returns lower triangular matrix that squared to be original matrix."
   (let ((dim (square-matrix-p m)))
 	(if dim
-		(dotimes (i 20)
-			   (do ((j 0 (1+ j)))
-				   ((>= j i))
-				 (do ((k 0 (1+ k)))
-					 (>= k j)
-				   (incf s (expt (Mref m i k) 2)))))
+		(let ((L (zeros dim dim)) (s 0))
+		  (dotimes (i dim)
+			(do ((j 0 (1+ j)))
+				((= j i))
+			  ((setf s 0)
+			   (do ((k 0 (1+ k)))
+				   ((= k j) (setf (Mref L i j) (/ s (Mref L j j))))
+				 (decf s (M* (Mref L i k) (Mref L j k))))))
+			((setf s 0)
+			 (do ((k 0 (1+ k)))
+				 ((= k i) (setf (Mref L i i) (sqrt s)))
+			   (decf s (expt (Mref L i k) 2)))))
+		  L)
 		(error "Augument must be square matrix"))))
 
 (defun multivariate-normal (sigma &optional mu)
@@ -82,8 +89,9 @@
 
 ;; junk
 (defparameter *tmp* (zeros 10 10))
-(M* tmp (ones 10 1))
+(M* tmp (rand 10 10))
 *tmp*
 (transpose-matrix *tmp*)
 (check-type *tmp* matrix-like)
 ;(assert (= (nrows *tmp*) (ncols *tmp*)))
+(cholesky-decomposition *tmp*)
