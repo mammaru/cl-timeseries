@@ -47,10 +47,12 @@
   "Returns lower triangular matrix that squared to be original matrix."
   (let ((dim (square-matrix-p m)))
 	(if dim
-		(loop
-		   for i from 0 to dim
-		   for j from i to dim
-		   summing (Mref m i j) into s)
+		(dotimes (i 20)
+			   (do ((j 0 (1+ j)))
+				   ((>= j i))
+				 (do ((k 0 (1+ k)))
+					 (>= k j)
+				   (incf s (expt (Mref m i k) 2)))))
 		(error "Augument must be square matrix"))))
 
 (defun multivariate-normal (sigma &optional mu)
