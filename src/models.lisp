@@ -44,7 +44,8 @@
 	;(if (= (nrows m) (ncols m)) dim-row nil)))
 
 (defun cholesky-decomposition (m)
-  "Returns lower triangular matrix that squared to be original matrix."
+  "Returns lower triangular matrix that squared to be original matrix.
+   Augument matrix must be positive-semidefinitite."
   (if (square-matrix-p m)
 	  (let* ((dim (square-matrix-p m)) (L (zeros dim dim)) (s 0))
 		(dotimes (i dim)
@@ -64,6 +65,10 @@
 (defun multivariate-normal (sigma &optional mu)
   (let ((Q (cholesky-decomposition sigma)) (z (rand (square-matrix-p sigma) 1)))
 	(if mu (M+ mu (M* Q z)) (M* Q z)) ))
+
+
+(defgeneric transition (model)
+  (:documentation "one-step-transition of each time series model."))
 
 (defmethod transition ((model vector-auto-regressive-model))
   (with-slots (dim dimension) model
