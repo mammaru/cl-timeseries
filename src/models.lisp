@@ -16,10 +16,10 @@
 
 (defclass vector-auto-regressive-model (time-series-model)
   ((dimension
+	:initarg :dimension
 	:initform (error "Must be specified dimension of observation at each time points by :dimension"))
    (transition-matrix
 	:initarg :A
-	:initform (rand (slot-value self dimension) (slot-value self dimension))
 	:accessor A
 	:documentation "transition matrix or coefficient")
    (error-mean
@@ -27,11 +27,8 @@
 	:documentation "mean of error")
    (error-variance-matrix
 	:initarg :sigma
-	:initform (eye dimension dimension)
 	:accessor sigma
-	:documentation "variance matrix of error")
-   (values
-	:initform (list (rand dimension 1)))))
+	:documentation "variance matrix of error")))
 
 (defclass auto-regressive-model (vector-auto-regressive-model)
   ((coefficient
@@ -64,6 +61,12 @@
 ;;
 ;; Methods
 ;;
+(defmethod initialize-instance :after ((model vector-auto-regressive-model) &key)
+  (let ((dim (slot-value model 'dimension)))
+	(setf (slot-value model 'transition-matrix) (rand dim dim))
+	(setf (slot-value model 'error-mean) (zeros dim 1))
+	(setf (slot-value model 'error-variance-matrix) (eye dim dim))))
+
 (defgeneric transition (model)
   (:documentation "one-step-transition of each time series model."))
 
