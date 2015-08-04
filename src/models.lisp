@@ -1,12 +1,21 @@
 (in-package :clts-user)
 
-(defclass vector-auto-regressive-model ()
-  ((dimension
+;;
+;; Classes
+;;
+(defclass time-series-model ()
+  ((observation
+	:initarg :observation
+	:accessor observation
+	:documentation "time series observation data")
+   (dimension
 	:initarg :dimension
 	:initform 1
 	:accessor dimension
-	:documentation "dimension of vaiables")
-   (transition-matrix
+	:documentation "dimension of each step observation for time series model")))
+
+(defclass vector-auto-regressive-model (time-series-model)
+  ((transition-matrix
 	:initarg :A
 	:initform (rand dimension dimension)
 	:accessor A
@@ -19,7 +28,12 @@
    (values
 	:initform (list (rand dimension 1)))))
 
-(defclass state-space-model ()
+(defclass auto-regressive-model (vector-auto-regressive-model)
+  ((time-points
+	:initarg :time-points
+	:documentation "total number of time-series data")))
+
+(defclass state-space-model (time-series-model)
   ((observation-dimension
 	:initarg :obs-dim
 	:initform (error "Must supply dimension of observation as :obs-dim"))
@@ -36,37 +50,9 @@
    (observation-values
 	:initform 0)))
 
-(defun square-matrix-p (m)
-  "Checking whether matrix is square or not. If square, returns dimension of matrix."
-  (check-type m matrix-like)
-  (if (reduce #'= (matrix-dimensions m)) (ncols m) nil))
-  ;(let ((dim-row (nrows m)) (dim-col (ncols m)))
-	;(if (= (nrows m) (ncols m)) dim-row nil)))
-
-(defun cholesky-decomposition (m)
-  "Returns lower triangular matrix that squared to be original matrix.
-   Augument matrix must be positive-semidefinitite."
-  (if (square-matrix-p m)
-	  (let* ((dim (square-matrix-p m)) (L (zeros dim dim)) (s 0))
-		(dotimes (i dim)
-		  (do ((j 0 (1+ j)))
-			  ((= j i))
-			(setf s (Mref m i j))
-			(do ((k 0 (1+ k)))
-				 ((= k j) (setf (Mref L i j) (/ s (Mref L j j))))
-			   (decf s (* (Mref L i k) (Mref L j k))) ))
-		  (setf s (Mref m i i))
-		  (do ((k 0 (1+ k)))
-			  ((= k i) (setf (Mref L i i) (sqrt s)))
-			(decf s (expt (Mref L i k) 2)) ))
-		L)
-	  (error "Augument must be square matrix") ))
-
-(defun multivariate-normal (sigma &optional mu)
-  (let ((Q (cholesky-decomposition sigma)) (z (rand (square-matrix-p sigma) 1)))
-	(if mu (M+ mu (M* Q z)) (M* Q z)) ))
-
-
+;;
+;; Methods
+;;
 (defgeneric transition (model)
   (:documentation "one-step-transition of each time series model."))
 
