@@ -10,31 +10,42 @@
 	:documentation "time series observation data")
    (dimension
 	:initarg :dimension
-	:initform 1
+	:type integer
 	:accessor dimension
 	:documentation "dimension of each step observation for time series model")))
 
 (defclass vector-auto-regressive-model (time-series-model)
-  ((transition-matrix
+  ((dimension
+	:initform (error "Must be specified dimension of observation at each time points by :dimension"))
+   (transition-matrix
 	:initarg :A
-	:initform (rand dimension dimension)
+	:initform (rand (slot-value self dimension) (slot-value self dimension))
 	:accessor A
 	:documentation "transition matrix or coefficient")
-   (error-matrix
-	:initarg :E
+   (error-mean
+	:initarg :mu
+	:documentation "mean of error")
+   (error-variance-matrix
+	:initarg :sigma
 	:initform (eye dimension dimension)
-	:accessor E
+	:accessor sigma
 	:documentation "variance matrix of error")
    (values
 	:initform (list (rand dimension 1)))))
 
 (defclass auto-regressive-model (vector-auto-regressive-model)
-  ((time-points
+  ((coefficient
+	:initarg :coefficient
+	:documentation "coefficient of regression at each step")
+   (dimension
+	:reader dimension
+	:initform 1)
+   (time-points
 	:initarg :time-points
 	:documentation "total number of time-series data")))
 
 (defclass state-space-model (time-series-model)
-  ((observation-dimension
+  ((dimension
 	:initarg :obs-dim
 	:initform (error "Must supply dimension of observation as :obs-dim"))
    (system-dimension
