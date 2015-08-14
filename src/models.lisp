@@ -28,7 +28,10 @@
    (error-variance-matrix
 	:initarg :sigma
 	:accessor sigma
-	:documentation "variance matrix of error")))
+	:documentation "variance matrix of error")
+   (values
+	:reader values
+	:documentation "generated values by vector-auto-regressive-model")))
 
 (defclass auto-regressive-model (vector-auto-regressive-model)
   ((coefficient
@@ -65,18 +68,20 @@
   (let ((dim (slot-value model 'dimension)))
 	(setf (slot-value model 'transition-matrix) (rand dim dim))
 	(setf (slot-value model 'error-mean) (zeros dim 1))
-	(setf (slot-value model 'error-variance-matrix) (eye dim dim))))
+	(setf (slot-value model 'error-variance-matrix) (eye dim dim))
+	(setf (slot-value model 'values) (multivariate-normal (eye dim dim)))))
 
 (defgeneric transition (model)
   (:documentation "one-step-transition of each time series model."))
 
-(defmethod transition ((model vector-auto-regressive-model))
+(defmethod transition ((model vector-auto-regressive-model) (&key (step 1)))
   (with-slots (dim dimension) model
 	(with-slots (A transition-matrix) model
 	  (with-slots (E error-matrix) model
 		(with-slots (v values) model
-			(let ((past-value (last values)))
-			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) ))))))
+		  (dotimes (i step)
+			((let ((past-value (last v)))
+			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) ))))))))
 
 (defmethod transition ((model state-space-model))
   (with-slots (dim dimension) model

@@ -1,5 +1,3 @@
-# Under construction!
-
 * Vector auto regressive model
  * Sparse vector auto regressive algorithms
 
