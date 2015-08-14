@@ -76,7 +76,7 @@
 	  (with-slots (E error-matrix) model
 		(with-slots (v values) model
 			(let ((past-value (last values)))
-			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E))))))))))
+			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) ))))))
 
 (defmethod transition ((model state-space-model))
   (with-slots (dim dimension) model
@@ -91,7 +91,7 @@
 
 
 
-;; junk
+;; scripts
 (defparameter *tmp* (zeros 10 10))
 (M* *tmp* (rand 10 10))
 *tmp*
