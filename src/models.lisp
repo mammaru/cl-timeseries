@@ -30,7 +30,7 @@
 	:accessor sigma
 	:documentation "variance matrix of error")
    (values
-	:reader values
+	:reader v
 	:documentation "generated values by vector-auto-regressive-model")))
 
 (defclass auto-regressive-model (vector-auto-regressive-model)
@@ -69,19 +69,16 @@
 	(setf (slot-value model 'transition-matrix) (rand dim dim))
 	(setf (slot-value model 'error-mean) (zeros dim 1))
 	(setf (slot-value model 'error-variance-matrix) (eye dim dim))
-	(setf (slot-value model 'values) (multivariate-normal (eye dim dim)))))
+	(setf (slot-value model 'values) (list (multivariate-normal (eye dim dim))))))
 
+;; TODO: closure is better?
 (defgeneric transition (model)
   (:documentation "one-step-transition of each time series model."))
 
-(defmethod transition ((model vector-auto-regressive-model) (&key (step 1)))
-  (with-slots (dim dimension) model
-	(with-slots (A transition-matrix) model
-	  (with-slots (E error-matrix) model
-		(with-slots (v values) model
-		  (dotimes (i step)
-			((let ((past-value (last v)))
-			  (setf values (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) ))))))))
+(defmethod transition ((model vector-auto-regressive-model))
+  (with-slots ((dim dimension) (A transition-matrix) (E error-matrix) (v values)) model
+	  (let ((past-value (last v)))
+		(setf v (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) )))
 
 (defmethod transition ((model state-space-model))
   (with-slots (dim dimension) model
