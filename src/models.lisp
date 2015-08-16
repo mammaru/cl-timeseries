@@ -3,7 +3,19 @@
 ;;
 ;; Classes
 ;;
-(defclass time-series-model ()
+(defclass observations ()
+  (data
+   :initarg :data
+   :accessor data
+   :documentation "a set of observed data")
+  (number
+   :reader number
+   :documentation "number of data points")
+  (dimension
+   :reader dimension
+   ::documentation "dimension of each data"))
+
+(defclass time-series-model (observation)
   ((observation
 	:initarg :observation
 	:accessor observation
