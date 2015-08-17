@@ -3,27 +3,23 @@
 ;;
 ;; Classes
 ;;
-(defclass observations ()
+(defclass observation ()
   (data
-   :initarg :data
-   :accessor data
    :documentation "a set of observed data")
   (number
-   :reader number
    :documentation "number of data points")
   (dimension
-   :reader dimension
    ::documentation "dimension of each data"))
 
 (defclass time-series-model (observation)
-  ((observation
-	:initarg :observation
-	:accessor observation
+  ((data
+	:initarg :data
+	:accessor data
 	:documentation "time series observation data")
    (dimension
 	:initarg :dimension
 	:type integer
-	:accessor dimension
+	:reader dimension
 	:documentation "dimension of each step observation for time series model")))
 
 (defclass vector-auto-regressive-model (time-series-model)
@@ -101,7 +97,14 @@
 	))
 
 
+(defun make-linear-transition (a e)
+  #'(lambda (x)
+	  (progn
+		(setf x (M+ (M* a x) (multivariate-normal e)))
+		x)))
 
+(defmacro define-transition (init)
+  `())
 
 
 
