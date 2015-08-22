@@ -3,20 +3,25 @@
 ;;
 ;; Classes
 ;;
-(defclass observation ()
+(defclass dataframe ()
   (data
+   :initarg :data
+   :initform "must be specified data."
+   :accessor data
    :documentation "a set of observed data")
-  (number
+  (index
+   :accessor index
    :documentation "number of data points")
   (dimension
+   :accessor dimension
    ::documentation "dimension of each data"))
 
-(defclass time-series-model (observation)
-  ((data
+(defclass time-series-model ()
+  ((nodes
 	:initarg :data
 	:accessor data
 	:documentation "time series observation data")
-   (dimension
+   (transision
 	:initarg :dimension
 	:type integer
 	:reader dimension
@@ -25,7 +30,8 @@
 (defclass vector-auto-regressive-model (time-series-model)
   ((dimension
 	:initarg :dimension
-	:initform (error "Must be specified dimension of observation at each time points by :dimension"))
+	:initform (error "Must be specified dimension of observation at each time points by :dimension")
+	:accessor dimension)
    (transition-matrix
 	:initarg :A
 	:accessor A
@@ -103,9 +109,16 @@
 		(setf x (M+ (M* a x) (multivariate-normal e)))
 		x)))
 
+(defun make-time-series (initial-values transition-function)
+  (let ((v initial-values))
+	#'(lambda ()
+		(setf v (transition-function v)) )))
+
 (defmacro define-transition (init)
   `())
 
+(defmacro define-time-series-model (name (&rest superclasses))
+  `(defclass ,name ))
 
 
 ;; scripts
