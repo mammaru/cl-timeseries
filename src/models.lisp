@@ -17,7 +17,7 @@
    ::documentation "dimension of each data"))
 
 (defclass time-series-model ()
-  ((nodes
+  ((parameters
 	:initarg :data
 	:accessor data
 	:documentation "time series observation data")
@@ -121,7 +121,11 @@
   `(defclass ,name ))
 
 
-;; scripts
+
+
+
+
+;; junk scripts
 (defparameter *tmp* (zeros 10 10))
 (M* *tmp* (rand 10 10))
 *tmp*
@@ -129,3 +133,62 @@
 (check-type *tmp* matrix-like)
 ;(assert (= (nrows *tmp*) (ncols *tmp*)))
 (cholesky-decomposition *tmp*)
+
+
+
+(defmacro make-transition-closure (name x0 &body body)
+  `(let ((x ,x0))
+	 (setf ,name
+	   #'(lambda ()
+		   (progn
+			 (setf x ,@body)
+			 x)))))
+  
+(defun make-linear-transition (a e)
+  #'(lambda (x)
+	  (progn
+		(setf x (M+ (M* a x) (multivariate-normal e)))
+		x)))
+
+(defclass time-series-model ()
+  ((parameters
+	:initarg :params
+	:accessor parameters
+	:documentation "parameters of time series model")
+   (transision
+	:initarg :dimension
+	:type function
+	:reader transition
+	:documentation "closure that specify transition of each step") ))
+
+(defstruct parameters
+  initial-value
+  transition-matrix
+  error-variance)
+
+(defclass vector-auto-regressive-model (time-series-model)
+  ((dimension
+	:initarg :dimension
+	:initform (error "Must be specified dimension of observation")
+	:accessor dimension)
+   (parameters
+	:initform (make-parameters))
+   (transition))
+
+(defmethod initialize-instance :after ((model vector-auto-regressive-model) &key)
+  (with-slots ((dim dimension) (params parameters)) model
+	(with-slots ((x0 initial-value)
+				 (A transition-matrix)
+				 (sigma error-variance)) params
+	  (setf A (rand dim dim))
+	  (setf sigma (eye dim dim))
+	  (setf (slot-value model 'transition)
+			(let ((x x0))
+			  (lambda ()
+				(progn
+				  (setf x (M+ (M* A x) (multivariate-normal sigma)))
+				  x) ))))))
+
+(defmethod transition ((model vector-auto-regressive-model))
+  (with-slots (transition) model
+	(transition ()) ))
