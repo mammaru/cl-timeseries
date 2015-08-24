@@ -136,14 +136,13 @@
 
 
 
-(defmacro make-transition-closure (name x0 &body body)
-  `(let ((x ,x0))
-	 (setf ,name
-	   #'(lambda ()
-		   (progn
-			 (setf x ,@body)
-			 x)))))
-  
+(defmacro make-transition(name &body equation)
+  `(setf ,name
+		 (lambda (x) ,@equation ) ))
+
+(macroexpand-1 '(make-transition linear (zeros 5 1)
+			   (M+ (M* (eye 5 5) x) (multivariate-normal (eye 5 5))) ))
+
 (defun make-linear-transition (a e)
   #'(lambda (x)
 	  (progn
