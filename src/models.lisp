@@ -86,7 +86,7 @@
 	(setf (slot-value model 'values) (list (multivariate-normal (eye dim dim))))))
 
 ;; TODO: closure is better?
-(defgeneric transition (model)
+(defgeneric transition (model values)
   (:documentation "one-step-transition of each time series model."))
 
 (defmethod transition ((model vector-auto-regressive-model))
@@ -133,7 +133,7 @@
 (check-type *tmp* matrix-like)
 ;(assert (= (nrows *tmp*) (ncols *tmp*)))
 (cholesky-decomposition *tmp*)
-
+(disassemble 'make-linear-transition)
 
 
 (defmacro make-transition(name &body equation)
@@ -150,15 +150,22 @@
 		x)))
 
 (defclass time-series-model ()
-  ((parameters
-	:initarg :params
-	:accessor parameters
-	:documentation "parameters of time series model")
-   (transision
-	:initarg :dimension
-	:type function
-	:reader transition
-	:documentation "closure that specify transition of each step") ))
+  ((variables :initarg :variables
+			  :accessor v
+			  :documentation "variables of each series of model")
+   (parameters :initarg :params
+			   :accessor params
+			   :documentation "parameters of time series model") ))
+
+(defclass variable-of-time-series-model ()
+  ((name :initarg :name
+		 :accessor name
+		 :type string
+		 :documentation "name of variable")
+   (dimension :initarg :dimension
+			  :accessor dim
+			  :type integer
+			  :documentation "dimension of variable") ))
 
 (defstruct parameters
   initial-value
@@ -166,28 +173,25 @@
   error-variance)
 
 (defclass vector-auto-regressive-model (time-series-model)
-  ((dimension
-	:initarg :dimension
-	:initform (error "Must be specified dimension of observation")
-	:accessor dimension)
-   (parameters
-	:initform (make-parameters))
-   (transition))
+  ((variables :type variables-of-time-series-model
+			  :initform (error "Must be specified variables"))
+   (parameters :initform (make-parameters)) ))
 
 (defmethod initialize-instance :after ((model vector-auto-regressive-model) &key)
-  (with-slots ((dim dimension) (params parameters)) model
+  (with-slots ((v variables) (params parameters)) model
 	(with-slots ((x0 initial-value)
 				 (A transition-matrix)
 				 (sigma error-variance)) params
-	  (setf A (rand dim dim))
-	  (setf sigma (eye dim dim))
-	  (setf (slot-value model 'transition)
-			(let ((x x0))
-			  (lambda ()
-				(progn
-				  (setf x (M+ (M* A x) (multivariate-normal sigma)))
-				  x) ))))))
+	  (let ((dim (slot-value v 'dimension)))
+		(setf x0 (rand dim 1))
+		(setf A (rand dim dim))
+		(setf sigma (eye dim dim)) ))))
 
-(defmethod transition ((model vector-auto-regressive-model))
-  (with-slots (transition) model
-	(transition ()) ))
+(defmethod transition ((model vector-auto-regressive-model) values)
+  (with-slots ((params parameters)) model
+	(with-slots ((x0 initial-value)
+				 (A transition-matrix)
+				 (sigma error-variance)) params
+	  (if values
+		  (M+ (M* A values) (multivariate-normal sigma))
+		  (M+ (M* A x0) (multivariate-normal sigma)) ))))
