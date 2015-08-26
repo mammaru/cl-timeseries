@@ -4,17 +4,17 @@
 ;; Classes
 ;;
 (defclass dataframe ()
-  (data
-   :initarg :data
-   :initform "must be specified data."
-   :accessor data
-   :documentation "a set of observed data")
-  (index
-   :accessor index
-   :documentation "number of data points")
-  (dimension
-   :accessor dimension
-   ::documentation "dimension of each data"))
+  ((data
+	:initarg :data
+	:initform "must be specified data."
+	:accessor data
+	:documentation "a set of observed data")
+   (index
+	:accessor index
+	:documentation "number of data points")
+   (dimension
+	:accessor dimension
+	::documentation "dimension of each data")))
 
 (defclass time-series-model ()
   ((parameters
@@ -89,14 +89,14 @@
 (defgeneric transition (model values)
   (:documentation "one-step-transition of each time series model."))
 
-(defmethod transition ((model vector-auto-regressive-model))
-  (with-slots ((dim dimension) (A transition-matrix) (E error-matrix) (v values)) model
-	  (let ((past-value (last v)))
-		(setf v (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) )))
+;(defmethod transition ((model vector-auto-regressive-model))
+;  (with-slots ((dim dimension) (A transition-matrix) (E error-matrix) (v values)) model
+;	  (let ((past-value (last v)))
+;		(setf v (cons (last v) (M+ (M* A past-value) (multivariate-normal E)))) )))
 
-(defmethod transition ((model state-space-model))
-  (with-slots (dim dimension) model
-	))
+;(defmethod transition ((model state-space-model))
+;  (with-slots (dim dimension) model
+;	))
 
 (defmethod sparse-vector-auto-regression ((model vector-auto-regressive-model))
   (with-slots (dim dimension) model
@@ -133,21 +133,21 @@
 (check-type *tmp* matrix-like)
 ;(assert (= (nrows *tmp*) (ncols *tmp*)))
 (cholesky-decomposition *tmp*)
-(disassemble 'make-linear-transition)
+;(disassemble 'make-linear-transition)
 
 
 (defmacro make-transition(name &body equation)
   `(setf ,name
-		 (lambda (x) ,@equation ) ))
+		 (lambda (x) ,@equation) ))
 
-(macroexpand-1 '(make-transition linear (zeros 5 1)
-			   (M+ (M* (eye 5 5) x) (multivariate-normal (eye 5 5))) ))
+;(macroexpand-1 '(make-transition linear (zeros 5 1)
+;			   (M+ (M* (eye 5 5) x) (multivariate-normal (eye 5 5))) ))
 
-(defun make-linear-transition (a e)
-  #'(lambda (x)
-	  (progn
-		(setf x (M+ (M* a x) (multivariate-normal e)))
-		x)))
+;(defun make-linear-transition (a e)
+;  #'(lambda (x)
+;	  (progn
+;		(setf x (M+ (M* a x) (multivariate-normal e)))
+;		x)))
 
 (defclass time-series-model ()
   ((variables :initarg :variables
@@ -195,3 +195,4 @@
 	  (if values
 		  (M+ (M* A values) (multivariate-normal sigma))
 		  (M+ (M* A x0) (multivariate-normal sigma)) ))))
+
