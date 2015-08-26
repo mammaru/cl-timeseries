@@ -117,8 +117,9 @@
 (defmacro define-transition (init)
   `())
 
-(defmacro define-time-series-model (name (&rest superclasses))
-  `(defclass ,name ))
+(defmacro define-time-series-model (name (&key variables parameters))
+  `(defclass ,name (time-series-model)
+	 ))
 
 
 
@@ -157,20 +158,23 @@
 			   :accessor params
 			   :documentation "parameters of time series model") ))
 
-(defclass variable-of-time-series-model ()
+(defclass variable-of-model ()
   ((name :initarg :name
 		 :accessor name
 		 :type string
-		 :documentation "name of variable")
+		 :documentation "name of a variable")
    (dimension :initarg :dimension
 			  :accessor dim
 			  :type integer
 			  :documentation "dimension of variable") ))
 
-(defstruct parameters
-  initial-value
-  transition-matrix
-  error-variance)
+(defclass parameter-of-model ()
+  ((name :initarg :name
+		 :initform "must be specified parameter's name"
+		 :accessor name
+		 :type string
+		 :documentation "name of a parameter")
+   ())
 
 (defclass vector-auto-regressive-model (time-series-model)
   ((variables :type variables-of-time-series-model
@@ -196,3 +200,28 @@
 		  (M+ (M* A values) (multivariate-normal sigma))
 		  (M+ (M* A x0) (multivariate-normal sigma)) ))))
 
+(defun as-keyword (symbol)
+  (intern (string symbol) :keyword))
+
+(defun slot->class-slot (spec)
+  (let ((name (first spec)))
+	`(,name :initarg ,(as-keyword name) :accessor ,name)))
+
+(define-time-series-model vector-auto-regressive-model
+	:variables ((value x))
+	:parameters ((transition-matrix A)
+				 (error-variance sigma)
+				 (initial-value x0))
+	:transitions (((M+ (M* A x) (multivariate-normal sigma))))
+	(make-instance 'vector-auto-regressive-model) )
+
+(define-time-series-model state-space-model ()
+  (:variables ((system x)
+			   (observation y) ))
+  (:parameters ((transition-matrix F)
+				(system-noise-variance Q)
+				(observation-matrix G)
+				((observation-noise-variance R))
+				(initial-system x0) ))
+  (:transitions (((M+ (M* F x) (multivariate-normal Q)))
+				 ((M+ (M* H x) (multivariate-normal R))))) )
