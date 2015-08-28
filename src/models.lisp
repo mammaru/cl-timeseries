@@ -117,12 +117,6 @@
 (defmacro define-transition (init)
   `())
 
-(defmacro define-time-series-model (name (&rest args) &body details)
-  `(defclass ,name (time-series-model)
-	 ))
-
-
-
 
 
 
@@ -174,7 +168,7 @@
 		 :accessor name
 		 :type string
 		 :documentation "name of a parameter")
-   ())
+   () ))
 
 (defclass vector-auto-regressive-model (time-series-model)
   ((variables :initarg :vars
@@ -208,7 +202,7 @@
   (let ((name (first spec)))
 	`(,name :initarg ,(as-keyword name) :accessor ,name)))
 
-(defmacro with-v&p (vars-params model &body body)
+(defmacro with-spec (vars-params model &body body)
   (destructuring-bind (vars params) vars-params
 	`(with-slots ((v variables) (p parameters)) ,model
 	   (with-slots ,(mapcar #'(lambda (x) `(,x ,(name x))) vars) v
@@ -218,19 +212,30 @@
 
 ; macro definition
 (defmacro define-time-series-model (name (&rest args) &body details)
-  (destructuring-bind (variables parameters transitions) (assoc :variables details)
+  (destructuring-bind (variables parameters transitions) ((cdr (assoc :variables details))
+														  (cdr (assoc :parameters details))
+														  (cdr (assoc :transitions details)))
 	`(progn
+	   ,(mapcar #'(lambda (spec)
+					`(defvar ,(first spec)
+					   (make-instance variable-of-model :name ,(second spec))))
+				variables)
+	   ,(mapcar #'(lambda (spec)
+					`(defvar ,(first spec)
+					   (make-instance parameter-of-model :name ,(second spec))))
+				parameters)
+
 	   (defclass ,name (time-series-model)
 		 ((variables :initform (error "Must be specified variables"))
 		  (parameters :initform (make-parameters)) ))
-	   (defmethod initialize-instance :after ((model vector-auto-regressive-model) &key)
-				  (with-v&p ((x) (x0 A sigma)) model
+	   (defmethod initialize-instance :after ((model ,name) &key)
+				  (with-spec ((x) (x0 A sigma)) model
 					(let ((dim (slot-value v 'dimension)))
 					  (setf x0 (rand dim 1))
 					  (setf A (rand dim dim))
 					  (setf sigma (eye dim dim)) )))
 	   (defmethod transition ((model vector-auto-regressive-model) values)
-		 (with-v&p (() (x0 A sigma)) model
+		 (with-spec (() (x0 A sigma)) model
 		   (if values
 			   (M+ (M* A values) (multivariate-normal sigma))
 			   (M+ (M* A x0) (multivariate-normal sigma)) ))))))
@@ -238,19 +243,15 @@
 
 
 (define-time-series-model vector-auto-regressive-model ()
-  (:variables ((value x)))
+  (:variables ((value x 5)))
   (:parameters ((transition-matrix A)
 				(error-variance sigma)
-				(initial-value x0))
-			   (let ((dim ))
-				 (setf A (rand dim dim))
-				 (setf sigma (eye dim dim))
-				 (setf x0 (rand dim 1)))
-  (:transitions (((M+ (M* A x) (multivariate-normal sigma))))) )
+				(initial-value x0) ))
+  (:transitions ((M+ (M* A x) (multivariate-normal sigma)))) )
 
 (define-time-series-model state-space-model ()
-  (:variables ((system x)
-			   (observation y) ))
+  (:variables ((system x 5)
+			   (observation y 5) ))
   (:parameters ((transition-matrix F)
 				(system-noise-variance Q)
 				(observation-matrix G)
