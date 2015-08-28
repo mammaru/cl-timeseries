@@ -216,15 +216,19 @@
 														  (cdr (assoc :parameters details))
 														  (cdr (assoc :transitions details)))
 	`(progn
+	   ; make instance of variables
 	   ,(mapcar #'(lambda (spec)
 					`(defvar ,(first spec)
 					   (make-instance variable-of-model :name ,(second spec))))
 				variables)
+
+	   ; make instance of parameters
 	   ,(mapcar #'(lambda (spec)
 					`(defvar ,(first spec)
 					   (make-instance parameter-of-model :name ,(second spec))))
 				parameters)
 
+	   ; define class and methods
 	   (defclass ,name (time-series-model)
 		 ((variables :initform (error "Must be specified variables"))
 		  (parameters :initform (make-parameters)) ))
