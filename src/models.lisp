@@ -114,9 +114,6 @@
 	#'(lambda ()
 		(setf v (transition-function v)) )))
 
-(defmacro define-transition (init)
-  `())
-
 
 
 
@@ -154,21 +151,26 @@
 
 (defclass variable-of-model ()
   ((name :initarg :name
+		 :initform (error "must be specified variable's name")
 		 :accessor name
 		 :type string
 		 :documentation "name of a variable")
    (dimension :initarg :dimension
+			  ;:initform (error "must be specified dimension of variable")
 			  :accessor dim
 			  :type integer
 			  :documentation "dimension of variable") ))
 
 (defclass parameter-of-model ()
   ((name :initarg :name
-		 :initform "must be specified parameter's name"
+		 :initform (error "must be specified parameter's name")
 		 :accessor name
 		 :type string
 		 :documentation "name of a parameter")
-   () ))
+   (value :initarg :value
+		  ;:initform (error "must be specified parameter' value")
+		  :accessor value
+		  ::documentation "value of parameter") ))
 
 (defclass vector-auto-regressive-model (time-series-model)
   ((variables :initarg :vars
@@ -210,47 +212,49 @@
 		   ,@body) ))))
 
 
+(defmacro deftransition (model-instance-name transitions)
+  `(defmethod transition (model ,model-instance-name)))
+
+
 ; macro definition
 (defmacro define-time-series-model (name (&rest args) &body details)
   (destructuring-bind (variables parameters transitions) ((cdr (assoc :variables details))
 														  (cdr (assoc :parameters details))
 														  (cdr (assoc :transitions details)))
-	`(progn
-	   ; make instance of variables
-	   ,(mapcar #'(lambda (spec)
-					`(defvar ,(first spec)
-					   (make-instance variable-of-model :name ,(second spec))))
-				variables)
-
-	   ; make instance of parameters
-	   ,(mapcar #'(lambda (spec)
-					`(defvar ,(first spec)
-					   (make-instance parameter-of-model :name ,(second spec))))
-				parameters)
+	`(let (,(mapcar #'(lambda (spec)
+						`(,(first spec)
+						   (make-instance variable-of-model :name ,(second spec)) ))
+					variables)
+		   ,(mapcar #'(lambda (spec)
+						`(,(first spec)
+						   (make-instance parameter-of-model :name ,(second spec)) ))
+					parameters)
+			(var-names ,(mapcar #'(lambda (spec) (first spec)) variables))
+			(param-names ,(mapcar #'(lambda (spec) (first spec)) parameters)))
 
 	   ; define class and methods
 	   (defclass ,name (time-series-model)
-		 ((variables :initform (error "Must be specified variables"))
-		  (parameters :initform (make-parameters)) ))
-	   (defmethod initialize-instance :after ((model ,name) &key)
-				  (with-spec ((x) (x0 A sigma)) model
-					(let ((dim (slot-value v 'dimension)))
+		 ((variables :initform ,var-names
+					 :accessor variables)
+		  (parameters :initform ,param-names
+					  :accessor parameters) ))
+	   (defmethod initialize-instance :after ((model ,name) &rest dims)
+				  (with-spec ((,var-names) (,param-names)) model
+					(let ((dim ))
 					  (setf x0 (rand dim 1))
 					  (setf A (rand dim dim))
 					  (setf sigma (eye dim dim)) )))
-	   (defmethod transition ((model vector-auto-regressive-model) values)
-		 (with-spec (() (x0 A sigma)) model
-		   (if values
-			   (M+ (M* A values) (multivariate-normal sigma))
-			   (M+ (M* A x0) (multivariate-normal sigma)) ))))))
+	   (defmethod transition ((model ,name) values)
+		 (with-spec (() (,param-names)) model
+		   (if values ,transitions ))))))
 
 
 
 (define-time-series-model vector-auto-regressive-model ()
-  (:variables ((value x 5)))
-  (:parameters ((transition-matrix A)
-				(error-variance sigma)
-				(initial-value x0) ))
+  (:variables ((x value 5)))
+  (:parameters ((A transition-matrix (rand 5 5))
+				(sigma error-variance (eye 5 5))
+				(x0 initial-value (rand 5 1)) ))
   (:transitions ((M+ (M* A x) (multivariate-normal sigma)))) )
 
 (define-time-series-model state-space-model ()
@@ -263,3 +267,11 @@
 				(initial-system x0) ))
   (:transitions (((M+ (M* F x) (multivariate-normal Q)))
 				 ((M+ (M* H x) (multivariate-normal R))))) )
+
+
+
+; another approach...
+(defmacro make-time-series-model (name (&rest initial-values) &body equations)
+  `(let (,(mapcar #'(lambda (k v) `(,k ,v)) initial-values))
+	 (labels transition ()
+			 ,@equations)))
