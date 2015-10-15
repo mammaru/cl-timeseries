@@ -270,7 +270,7 @@
 
 
 
-; another approach...
+; yet another approach...
 (defmacro make-time-series-model (name (&rest initial-values) &body equations)
   `(let (,(mapcar #'(lambda (k v) `(,k ,v)) initial-values))
 	 (labels transition ()

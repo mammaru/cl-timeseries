@@ -5,7 +5,7 @@
   (check-type m matrix-like)
   (if (reduce #'= (matrix-dimensions m)) (ncols m) nil))
   ;(let ((dim-row (nrows m)) (dim-col (ncols m)))
-	;(if (= (nrows m) (ncols m)) dim-row nil)))
+       ;(if (= (nrows m) (ncols m)) dim-row nil)))
 
 (defun cholesky-decomposition (m)
   "Returns lower triangular matrix that squared to be original matrix.
